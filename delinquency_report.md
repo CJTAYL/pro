@@ -4,4 +4,6 @@ The delinquency report is used by the Chief Lending Officer and Cheif Risk Offic
 
 $$ \frac{\Sigma \text{ current balance of delinquent loans}}{\Sigma \text{ current balance of all loans}} $$
 
-For example, if a portfolio was comprised of Loan A (current balance of $100), Loan B (current balance of $200), and Loan C (current balance of $300, and Loan A was delinquent, the MDR would be 0.20.
+For example, if a portfolio was comprised of Loan A (current balance of $100), Loan B (current balance of $200), and Loan C (current balance of $300, and Loan A was delinquent, the MDR would be 0.167.
+
+$$ \frac{100}{100 + 200 + 300} = \frac{100}{600} = 0.167 $$
