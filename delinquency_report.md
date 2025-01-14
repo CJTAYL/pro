@@ -6,7 +6,7 @@ $$ \frac{\Sigma \text{ current balance of delinquent loans}}{\Sigma \text{ curre
 
 ## Examples of MDR
 
-To illustrate some examples, consider the following portfolio:
+Consider the following portfolio:
 - Loan A (credit card) - current principal balance = $100
 - Loan B (auto loan) - current principal balance = $200
 - Loan C (credit card) - current principal balance = $300
