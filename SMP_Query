@@ -1,105 +1,64 @@
 /*
-Purpose: Query to retrieve information about members participating in the SMP program
+Purpose: Query to identify share term certificates with Warning Code 038, which is associated with the Savings Match Program (SMP)
 Author: Chris Taylor
-Original Query Date: 10/04/24
-Criteria
-- Opened in Durahm or Virtual Center
-- Opened between Feb 1, 2024 and Dec 31, 2026
-- Age >= 16
-- Deposit at least $250
-- Complete program application and sign disclaimer
-- Warning Code = 36 or 38
-- Account Relationship Code 18 = Employee 
+Date: 12/12/2024
+Updated: 01/15/2025
 */
 
-SET NOCOUNT ON
+WITH recent_smp (member_name, account_number, sequence_number, share_branch, open_date, share_type, share_description, orig_balance, current_balance, RN) as (
 
-SELECT DISTINCT
-    sav.PARENTACCOUNT as ParentAccount
-	, dtl.AccountRelationshipCode
-  , ID as ShareID
-	, MIN(stran.SEQUENCENUMBER) as SequenceNumber
-  , MAX(AccountPrimeLongName) as MemberName
-	, MAX(DATEDIFF(year, BIRTHDATE, GETDATE())) as Age
-  , WARNINGCODE1 as WarningCode
-  , sav.BRANCH as Branch
-	, CASE 
-		WHEN sav.BRANCH = 701 THEN 'Charlotte Meridan'
-		WHEN sav.BRANCH = 702 THEN 'Charlotte University'
-		WHEN sav.BRANCH = 702 THEN 'Greensboro West Market'
-		WHEN sav.BRANCH = 704 THEN 'Fayetteville'
-		WHEN sav.BRANCH = 705 THEN 'Greensboro West Gate'
-		WHEN sav.BRANCH = 706 THEN 'High Point'
-		WHEN sav.BRANCH = 708 THEN 'Charlotte Milton'
-		WHEN sav.BRANCH = 714 THEN 'Winston Salem'
-		WHEN sav.BRANCH = 717 THEN 'Durham'
-		WHEN sav.BRANCH = 720 THEN 'Operations'
-		WHEN sav.BRANCH = 721 THEN 'Virtual Center (Raleigh)'
-		WHEN sav.BRANCH = 737 THEN 'Raleigh'
-		WHEN sav.BRANCH = 747 THEN 'Garner'
-		WHEN sav.BRANCH = 751 THEN 'Monroe'
-		WHEN sav.BRANCH = 771 THEN 'Charlotte South'
-		WHEN sav.BRANCH = 777 THEN 'North Durham'
-		WHEN sav.BRANCH = 790 THEN 'Carrboro'
-		ELSE 'No Branch Available'
-	END as BranchDescription
-  , CAST(sav.OPENDATE as DATE) as OpenDate
-  , CAST(ORIGINALDEPOSITDATE as DATE) as OriginalDepositDate
-  , MIN(ORIGINALDEPOSIT) as OriginalDeposit
-	, MAX(BALANCE) as CurrentBalance
-	, CASE
-		WHEN BALANCE >= 2 * ORIGINALDEPOSIT THEN 'N'
-		ELSE 'Y'
-	END as PotentialIssue -- Y could indicate funds were not matched or participant withdrew deposit early
-FROM 
-    ARCUSYM000.dbo.SAVINGS sav 
-INNER JOIN 
-    ARCUSYM000.arcu.ARCUMemberAccountDetailed mdtl ON sav.PARENTACCOUNT = mdtl.AccountNumber AND sav.ProcessDate = mdtl.ProcessDate
-INNER JOIN  
-    ARCUSYM000.arcu.ARCUMemberSupp supp ON mdtl.MemberSuppID = supp.MemberSuppID AND mdtl.ProcessDate = supp.ProcessDate
-INNER JOIN 
-    ARCUSYM000.arcu.ARCUAccountDetailed dtl ON sav.PARENTACCOUNT = dtl.AccountNumber AND sav.ProcessDate = dtl.ProcessDate
-INNER JOIN 
-	ARCUSYM000.dbo.SAVINGSTRANSACTION stran ON stran.PARENTACCOUNT = sav.PARENTACCOUNT AND stran.BALANCECHANGE = sav.ORIGINALBALANCE AND stran.POSTDATE = sav.ORIGINALDEPOSITDATE
-WHERE 
-  dtl.AccountRelationshipCode != 18
-	AND sav.OPENDATE >= '2024-02-01' 
-	AND sav.OPENDATE <= '2026-12-31'
-  AND WARNINGCODE1 != 900
-  AND (WARNINGCODE1 = 36 OR WARNINGCODE1 = 38)
-	AND sav.ProcessDate = 20250114 -- most recent process date at time of query
-GROUP BY 
-	sav.ParentAccount 
-	, AccountRelationshipCode
-	, ID 
-	--, SequenceNumber 
-	, sav.BRANCH
-	, CAST(ORIGINALDEPOSITDATE as DATE)
-	, CAST(sav.OPENDATE as DATE)
-	, WARNINGCODE1
-	, CASE 
-		WHEN sav.BRANCH = 701 THEN 'Charlotte Meridan'
-		WHEN sav.BRANCH = 702 THEN 'Charlotte University'
-		WHEN sav.BRANCH = 702 THEN 'Greensboro West Market'
-		WHEN sav.BRANCH = 704 THEN 'Fayetteville'
-		WHEN sav.BRANCH = 705 THEN 'Greensboro West Gate'
-		WHEN sav.BRANCH = 706 THEN 'High Point'
-		WHEN sav.BRANCH = 708 THEN 'Charlotte Milton'
-		WHEN sav.BRANCH = 714 THEN 'Winston Salem'
-		WHEN sav.BRANCH = 717 THEN 'Durham'
-		WHEN sav.BRANCH = 720 THEN 'Operations'
-		WHEN sav.BRANCH = 721 THEN 'Virtual Center (Raleigh)'
-		WHEN sav.BRANCH = 737 THEN 'Raleigh'
-		WHEN sav.BRANCH = 747 THEN 'Garner'
-		WHEN sav.BRANCH = 751 THEN 'Monroe'
-		WHEN sav.BRANCH = 771 THEN 'Charlotte South'
-		WHEN sav.BRANCH = 777 THEN 'North Durham'
-		WHEN sav.BRANCH = 790 THEN 'Carrboro'
-		ELSE 'No Branch Available'
-	END
-	, CASE
-		WHEN BALANCE >= 2 * ORIGINALDEPOSIT THEN 'N'
-		ELSE 'Y'
-	END
-ORDER BY
-	sav.PARENTACCOUNT
+select distinct
+  SharePrimeNameLongName 
+  , SD.AccountNumber
+  , stran.sequencenumber
+  --, ShareID
+  --, ShareWarningcode1
+  , ShareBranchFullDescription
+  , ShareOpenDate
+  , ShareType
+  , ShareTypeDescription
+  , ShareOriginalBalance
+  , ShareBalance
+  , row_number() over(partition by SD.AccountNumber, ShareID order by SD.ProcessDate desc) -- Label the data for individual accounts by process date descending
+from arcusym000.arcu.ARCUShareDetailed as SD
+inner join arcusym000.arcu.ARCUAccountDetailed as AD on SD.ProcessDate = AD.ProcessDate and SD.AccountNumber = AD.AccountNumber
+inner join arcusym000.dbo.SAVINGSTRANSACTION as stran ON stran.PARENTACCOUNT = SD.AccountNumber AND stran.BALANCECHANGE = SD.ShareOriginalBalance AND stran.POSTDATE = SD.ShareOriginalDepositDate
+where 
+  ShareType in (1006, 1106)
+  and ShareOriginalBalance between 250 and 750 -- Not sure if this will be too narrow
+  and (ShareWarningcode1 = 038 or 
+  AccountWarningcode1 = 038 or 
+  AccountWarningcode2 = 038 or 
+  AccountWarningcode3 = 038 or 
+  AccountWarningcode4 = 038 or 
+  AccountWarningcode5 = 038 or 
+  AccountWarningcode6 = 038 or 
+  AccountWarningcode7 = 038 or 
+  AccountWarningcode8 = 038 or 
+  AccountWarningcode9 = 038 or 
+  AccountWarningcode10 = 038 or 
+  AccountWarningcode11 = 038 or 
+  AccountWarningcode12 = 038 or 
+  AccountWarningcode13 = 038 or 
+  AccountWarningcode14 = 038 or 
+  AccountWarningcode15 = 038 or 
+  AccountWarningcode16 = 038 or 
+  AccountWarningcode17 = 038 or 
+  AccountWarningcode18 = 038 or
+  AccountWarningcode19 = 038 or 
+  AccountWarningcode20 = 038
+  )
+)
+
+select distinct
+  member_name
+  , account_number 
+  , share_branch
+  , orig_balance 
+  , current_balance
+  , open_date
+  , share_description
+from recent_smp 
+where RN = 1 -- Return data with the most recent process date
+order by 
+  member_name
