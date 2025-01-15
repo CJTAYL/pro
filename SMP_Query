@@ -5,8 +5,6 @@ Date: 12/12/2024
 Updated: 01/15/2025
 */
 
-WITH recent_smp (member_name, account_number, sequence_number, share_branch, open_date, share_type, share_description, orig_balance, current_balance, RN) as (
-
 select distinct
   SharePrimeNameLongName 
   , SD.AccountNumber
@@ -48,17 +46,3 @@ where
   AccountWarningcode19 = 038 or 
   AccountWarningcode20 = 038
   )
-)
-
-select distinct
-  member_name
-  , account_number 
-  , share_branch
-  , orig_balance 
-  , current_balance
-  , open_date
-  , share_description
-from recent_smp 
-where RN = 1 -- Return data with the most recent process date
-order by 
-  member_name
