@@ -9,22 +9,39 @@ select distinct
   SharePrimeNameLongName 
   , SD.AccountNumber
   , stran.sequencenumber
-  --, ShareID
-  --, ShareWarningcode1
   , ShareBranchFullDescription
   , ShareOpenDate
   , ShareType
   , ShareTypeDescription
   , ShareOriginalBalance
   , ShareBalance
-  , row_number() over(partition by SD.AccountNumber, ShareID order by SD.ProcessDate desc) -- Label the data for individual accounts by process date descending
 from arcusym000.arcu.ARCUShareDetailed as SD
 inner join arcusym000.arcu.ARCUAccountDetailed as AD on SD.ProcessDate = AD.ProcessDate and SD.AccountNumber = AD.AccountNumber
 inner join arcusym000.dbo.SAVINGSTRANSACTION as stran ON stran.PARENTACCOUNT = SD.AccountNumber AND stran.BALANCECHANGE = SD.ShareOriginalBalance AND stran.POSTDATE = SD.ShareOriginalDepositDate
 where 
-  ShareType in (1006, 1106)
-  and ShareOriginalBalance between 250 and 750 -- Not sure if this will be too narrow
+  SD.ProcessDate = 20250114
+  and ShareType in (1006, 1106)
+  and ShareOriginalBalance >= 250
   and (ShareWarningcode1 = 038 or 
+  ShareWarningcode2 = 038 or
+  ShareWarningcode3 = 038 or 
+  ShareWarningcode4 = 038 or 
+  ShareWarningcode5 = 038 or 
+  ShareWarningcode6 = 038 or 
+  ShareWarningcode7 = 038 or 
+  ShareWarningcode8 = 038 or 
+  ShareWarningcode9 = 038 or 
+  ShareWarningcode10 = 038 or 
+  ShareWarningcode11 = 038 or 
+  ShareWarningcode12 = 038 or 
+  ShareWarningcode13 = 038 or
+  ShareWarningcode14 = 038 or 
+  ShareWarningcode15 = 038 or
+  ShareWarningcode16 = 038 or 
+  ShareWarningcode17 = 038 or 
+  ShareWarningcode18 = 038 or
+  ShareWarningcode19 = 038 or
+  ShareWarningcode20 = 038 or
   AccountWarningcode1 = 038 or 
   AccountWarningcode2 = 038 or 
   AccountWarningcode3 = 038 or 
