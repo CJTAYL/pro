@@ -44,7 +44,7 @@ def mortgage_annualized_ROI(loan_principal, loan_term, origination_fee_rate, mon
     """
     total_payments = loan_term * 12 * monthly_payments
     origination_fee = origination_fee_rate * loan_principal
-    serviving_costs = servicing_fee * loan_term
+    servicing_costs = servicing_fee * loan_term
     costs = loan_principal + servicing_costs
 
     ROI = ((total_payments + origination_fee - costs) / loan_principal) * 100
