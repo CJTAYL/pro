@@ -150,3 +150,19 @@ def calculate_credit_card_portfolio_return(
         "Net Income": net_income,
         "Return on Portfolio (%)": return_on_portfolio
     }
+
+
+def calculate_loan_provision(outstanding_balance, default_rate, loss_given_default):
+    """
+    Calculate the provision for loan losses.
+
+    Parameters:
+    - outstanding_balance: Total outstanding loan balance ($)
+    - default_rate: Expected default rate (as a decimal, e.g., 0.02 for 2%)
+    - loss_given_default: Loss given default (as a decimal, e.g., 0.50 for 50%)
+
+    Returns:
+    - Provision for loan losses ($)
+    """
+    provision = outstanding_balance * default_rate * loss_given_default
+    return provision
