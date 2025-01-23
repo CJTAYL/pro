@@ -6,7 +6,7 @@ def sharpe_ratio(investment_returns, market_returns):
   - investment_returns = list of investment returns 
   - market_returns = list of market returns
   """
-  excess_returns = investment_returns - market_returns
+  excess_returns = np.array(investment_returns) - np.array(market_returns)
   mean_excess_return = np.mean(excess_returns)
   investment_std = np.std(investment_returns)
   sharpe_ratio = mean_excess_return / investment_std
